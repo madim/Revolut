@@ -6,10 +6,11 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.revolut.R
-import com.example.revolut.presentation.RateItem
+import com.example.revolut.domain.Rate
+import com.example.revolut.presentation.util.afterTextChanged
 
 internal class RateViewHolder(
-    root: View,
+    private val root: View,
     private val callback: RatesAdapter.Callback
 ) : RecyclerView.ViewHolder(root), View.OnClickListener {
 
@@ -20,24 +21,21 @@ internal class RateViewHolder(
 
     init {
         root.setOnClickListener(this)
-        rate.setOnClickListener(this)
-    }
-
-    private var item: RateItem? = null
-
-    override fun onClick(view: View) {
-        if (view == rate) {
-            callback.onRateClicked(item!!)
-        } else {
-            callback.onItemClicked(item!!)
+        rate.afterTextChanged { text ->
+            callback.onRateChanged(item!!, text)
         }
     }
 
-    fun bind(item: RateItem) {
+    private var item: Rate? = null
+
+    override fun onClick(view: View) {
+        if (view == root) callback.onItemClicked(item!!)
+    }
+
+    fun bind(item: Rate) {
         this.item = item
 
-        title.text = item.title
-        subtitle.text = item.subtitle
+        subtitle.text = item.currency
         rate.setText("${item.rate}")
     }
 }

@@ -6,11 +6,10 @@ class RateRepository(
     private val currencyApi: CurrencyApi
 ) {
 
-    suspend fun rates(base: String): List<Rate> {
-        val response = currencyApi.currencyList(base)
+    suspend fun rates(base: Rate): List<Rate> {
+        val response = currencyApi.currencyList(base.currency)
+        val rates = response.rates.map { Rate(it.key, it.value) }
 
-        return response.rates.map {
-            Rate(it.key, it.value)
-        }
+        return listOf(base) + rates
     }
 }

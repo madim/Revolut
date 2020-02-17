@@ -5,11 +5,11 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import com.example.revolut.R
-import com.example.revolut.presentation.RateItem
+import com.example.revolut.domain.Rate
 
 internal class RatesAdapter(
     private val callback: Callback
-) : ListAdapter<RateItem, RateViewHolder>(
+) : ListAdapter<Rate, RateViewHolder>(
     RateItemCallback
 ) {
 
@@ -24,17 +24,24 @@ internal class RatesAdapter(
     }
 
     interface Callback {
-        fun onItemClicked(item: RateItem)
-        fun onRateClicked(item: RateItem)
+        fun onItemClicked(item: Rate)
+        fun onRateChanged(item: Rate, newRate: CharSequence)
     }
 
-    private object RateItemCallback : DiffUtil.ItemCallback<RateItem>() {
-        override fun areItemsTheSame(oldItem: RateItem, newItem: RateItem): Boolean {
-            return oldItem.subtitle == newItem.subtitle
+    private object RateItemCallback : DiffUtil.ItemCallback<Rate>() {
+        override fun areItemsTheSame(oldItem: Rate, newItem: Rate): Boolean {
+            return oldItem.currency == newItem.currency
         }
 
-        override fun areContentsTheSame(oldItem: RateItem, newItem: RateItem): Boolean {
+        override fun areContentsTheSame(oldItem: Rate, newItem: Rate): Boolean {
             return oldItem == newItem
+        }
+
+        override fun getChangePayload(oldItem: Rate, newItem: Rate): Any? {
+            if (oldItem == newItem) {
+                return null
+            }
+            return Unit // Dummy value to prevent item change animation.
         }
     }
 }
