@@ -21,12 +21,12 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        val ratesList: RecyclerView = findViewById(R.id.rates_list)
-        ratesList.adapter = ratesAdapter
+        val rateList: RecyclerView = findViewById(R.id.rate_list)
+        rateList.adapter = ratesAdapter
 
         ratesViewModel.rates.observe(this, Observer {
             ratesAdapter.submitList(it.rates) {
-                if (it.scrollToTop) ratesList.scrollToPosition(0)
+                if (it.scrollToTop) rateList.scrollToPosition(0)
             }
         })
     }
