@@ -7,11 +7,14 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.revolut.R
 import com.example.revolut.domain.Rate
+import com.example.revolut.presentation.QueryChangedEvent
 import com.example.revolut.presentation.util.afterTextChanged
+import kotlinx.coroutines.channels.SendChannel
 
 internal class RateViewHolder(
     private val root: View,
-    private val callback: RatesAdapter.Callback
+    private val events: SendChannel<QueryChangedEvent>,
+    private val onClick: ((rate: Rate) -> Unit)
 ) : RecyclerView.ViewHolder(root), View.OnClickListener {
 
     private val image: ImageView = root.findViewById(R.id.image)
@@ -22,14 +25,14 @@ internal class RateViewHolder(
     init {
         root.setOnClickListener(this)
         rate.afterTextChanged { text ->
-            callback.onRateChanged(item!!, text)
+            events.offer(QueryChangedEvent(item!!, text.toString()))
         }
     }
 
     private var item: Rate? = null
 
     override fun onClick(view: View) {
-        if (view == root) callback.onItemClicked(item!!)
+        if (view == root) onClick(item!!)
     }
 
     fun bind(item: Rate) {
