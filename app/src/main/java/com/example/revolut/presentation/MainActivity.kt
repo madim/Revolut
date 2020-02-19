@@ -15,9 +15,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        val ratesAdapter = RatesAdapter(ratesViewModel.events) {
-            ratesViewModel.onItemClicked(it)
-        }
+        val ratesAdapter = RatesAdapter(ratesViewModel.events)
         val rateList: RecyclerView = findViewById(R.id.rate_list)
         rateList.adapter = ratesAdapter
 

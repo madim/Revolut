@@ -20,8 +20,8 @@ internal class RatesViewModel(
     private val rateRepository: RateRepository
 ) : ViewModel() {
 
-    private val _events = Channel<QueryChangedEvent>(Channel.RENDEZVOUS)
-    val events: SendChannel<QueryChangedEvent> get() = _events
+    private val _events = Channel<Event>(Channel.RENDEZVOUS)
+    val events: SendChannel<Event> get() = _events
 
     private val _rates = MutableLiveData<Rates>()
     val rates: LiveData<Rates> get() = _rates
@@ -40,33 +40,34 @@ internal class RatesViewModel(
             var activeQuery = ""
             var activeQueryJob: Job? = null
 
-            _events.consumeEach {
-                val query = it.query
-                if (base == it.rate && query != activeQuery) {
-                    activeQuery = query
-                    activeQueryJob?.cancel()
-                    updateRatesJob.cancel()
+            _events.consumeEach { event ->
+                when (event) {
+                    is Event.ItemClicked -> {
+                        if (base != event.rate) {
+                            base = event.rate
+                            updateRates(scrollToTop = true)
+                        }
+                    }
+                    is Event.QueryChanged -> {
+                        val query = event.query
+                        if (base == event.rate && query != activeQuery) {
+                            activeQuery = query
+                            activeQueryJob?.cancel()
+                            updateRatesJob.cancel()
 
-                    if (query == "") {
-                        // base = base.copy(rate = 0.0)
-                    } else {
-                        activeQueryJob = launch {
-                            delay(QUERY_DELAY)
-                            // base = base.copy(rate = query.toDouble())
-                            updateRatesJob = updateRatesJob()
+                            if (query == "") {
+                                // base = base.copy(rate = 0.0)
+                            } else {
+                                activeQueryJob = launch {
+                                    delay(QUERY_DELAY)
+                                    // base = base.copy(rate = query.toDouble())
+                                    updateRatesJob = updateRatesJob()
+                                }
+                            }
                         }
                     }
                 }
             }
-        }
-    }
-
-    fun onItemClicked(item: Rate) {
-        if (base == item) return
-
-        base = item
-        viewModelScope.launch {
-            updateRates(scrollToTop = true)
         }
     }
 

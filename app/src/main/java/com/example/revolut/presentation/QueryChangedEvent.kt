@@ -2,7 +2,7 @@ package com.example.revolut.presentation
 
 import com.example.revolut.domain.Rate
 
-data class QueryChangedEvent(
-    val rate: Rate,
-    val query: String
-)
+sealed class Event {
+    data class QueryChanged(val rate: Rate, val query: String) : Event()
+    data class ItemClicked(val rate: Rate) : Event()
+}
