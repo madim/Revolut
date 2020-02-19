@@ -6,9 +6,12 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import com.example.revolut.R
 import com.example.revolut.domain.Rate
+import com.example.revolut.presentation.QueryChangedEvent
+import kotlinx.coroutines.channels.SendChannel
 
 internal class RatesAdapter(
-    private val callback: Callback
+    private val events: SendChannel<QueryChangedEvent>,
+    private val onClick: ((rate: Rate) -> Unit)
 ) : ListAdapter<Rate, RateViewHolder>(
     RateItemCallback
 ) {
@@ -16,16 +19,11 @@ internal class RatesAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RateViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         val view = inflater.inflate(R.layout.item_rate, parent, false)
-        return RateViewHolder(view, callback)
+        return RateViewHolder(view, events, onClick)
     }
 
     override fun onBindViewHolder(holder: RateViewHolder, position: Int) {
         holder.bind(getItem(position))
-    }
-
-    interface Callback {
-        fun onItemClicked(item: Rate)
-        fun onRateChanged(item: Rate, newRate: CharSequence)
     }
 
     private object RateItemCallback : DiffUtil.ItemCallback<Rate>() {
