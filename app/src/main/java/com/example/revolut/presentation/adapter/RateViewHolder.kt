@@ -4,7 +4,7 @@ import android.view.View
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.recyclerview.widget.RecyclerView`
+import androidx.recyclerview.widget.RecyclerView
 import com.example.revolut.R
 import com.example.revolut.domain.Rate
 import com.example.revolut.presentation.Event

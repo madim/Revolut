@@ -42,12 +42,6 @@ internal class RatesViewModel(
 
             _events.consumeEach { event ->
                 when (event) {
-                    is Event.ItemClicked -> {
-                        if (base != event.rate) {
-                            base = event.rate
-                            updateRates(scrollToTop = true)
-                        }
-                    }
                     is Event.QueryChanged -> {
                         val query = event.query
                         if (base == event.rate && query != activeQuery) {
@@ -55,15 +49,19 @@ internal class RatesViewModel(
                             activeQueryJob?.cancel()
                             updateRatesJob.cancel()
 
-                            if (query == "") {
-                                // base = base.copy(rate = 0.0)
-                            } else {
+                            if (query.isNotEmpty()) {
                                 activeQueryJob = launch {
                                     delay(QUERY_DELAY)
                                     // base = base.copy(rate = query.toDouble())
                                     updateRatesJob = updateRatesJob()
                                 }
                             }
+                        }
+                    }
+                    is Event.ItemClicked -> {
+                        if (base != event.rate) {
+                            base = event.rate
+                            updateRates(scrollToTop = true)
                         }
                     }
                 }
