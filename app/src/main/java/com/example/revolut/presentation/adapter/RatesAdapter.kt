@@ -25,6 +25,11 @@ internal class RatesAdapter(
         holder.bind(getItem(position))
     }
 
+    override fun onViewRecycled(holder: RateViewHolder) {
+        super.onViewRecycled(holder)
+        holder.recycle()
+    }
+
     private object RateItemCallback : DiffUtil.ItemCallback<Currency>() {
         override fun areItemsTheSame(oldItem: Currency, newItem: Currency): Boolean {
             return oldItem.currency == newItem.currency

@@ -13,7 +13,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 private const val UPDATE_DELAY = 1000L
-private const val QUERY_DELAY = 200L
 
 internal class RatesViewModel(
     private val currencyRepository: CurrencyRepository
@@ -50,8 +49,6 @@ internal class RatesViewModel(
 
                             if (query.isNotEmpty()) {
                                 updateListJob = launch {
-                                    delay(QUERY_DELAY)
-
                                     while (true) {
                                         onQueryChanged(query)
                                         delay(UPDATE_DELAY)
@@ -64,6 +61,11 @@ internal class RatesViewModel(
                         if (base == event.currency) return@consumeEach
                         // updateListJob.cancel()
                         onItemClicked(event.currency)
+                    }
+                    is Event.BaseRecycled -> {
+                        val query = event.query
+                        val rate = query.toFloatOrNull() ?: return@consumeEach
+                        base = base.copy(rate = rate)
                     }
                 }
             }

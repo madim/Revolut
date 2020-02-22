@@ -19,14 +19,14 @@ internal class RateViewHolder(
 
     // private val image: ImageView = root.findViewById(R.id.image)
     // private val title: TextView = root.findViewById(R.id.title)
-    private val subtitle: TextView = root.findViewById(R.id.subtitle)
-    private val rate: EditText = root.findViewById(R.id.rate)
+    private val currencyText: TextView = root.findViewById(R.id.subtitle)
+    private val editText: EditText = root.findViewById(R.id.rate)
 
     private val isBaseCurrency: Boolean get() = adapterPosition == 0
 
     init {
         root.setOnClickListener(this)
-        rate.afterTextChanged { text ->
+        editText.afterTextChanged { text ->
             if (isBaseCurrency) events.offer(Event.QueryChanged(item!!, text.toString()))
         }
     }
@@ -40,7 +40,13 @@ internal class RateViewHolder(
     fun bind(item: Currency) {
         this.item = item
 
-        subtitle.text = item.currency
-        rate.setText(RATE_FORMAT.format(item.rate))
+        currencyText.text = item.currency
+        editText.setText(RATE_FORMAT.format(item.rate))
+    }
+
+    fun recycle() {
+        if (isBaseCurrency) {
+            events.offer(Event.BaseRecycled(editText.text.toString()))
+        }
     }
 }
