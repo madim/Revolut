@@ -2,6 +2,7 @@ package com.example.revolut.presentation
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.RecyclerView
 import com.example.revolut.R
@@ -19,10 +20,14 @@ class MainActivity : AppCompatActivity() {
         val rateList: RecyclerView = findViewById(R.id.rate_list)
         rateList.adapter = ratesAdapter
 
-        ratesViewModel.rates.observe(this, Observer {
-            ratesAdapter.submitList(it.rates) {
+        ratesViewModel.currencies.observe(this, Observer {
+            ratesAdapter.submitList(it.currencies) {
                 if (it.scrollToTop) rateList.scrollToPosition(0)
             }
+        })
+
+        ratesViewModel.message.observe(this, Observer {
+            Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
         })
     }
 }

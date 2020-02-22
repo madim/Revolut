@@ -4,9 +4,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.revolut.domain.Rate
-import com.example.revolut.domain.RateRepository
-import kotlinx.coroutines.Job
+import com.example.revolut.domain.Currency
+import com.example.revolut.domain.CurrencyRepository
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.consumeEach
@@ -17,65 +16,92 @@ private const val UPDATE_DELAY = 1000L
 private const val QUERY_DELAY = 200L
 
 internal class RatesViewModel(
-    private val rateRepository: RateRepository
+    private val currencyRepository: CurrencyRepository
 ) : ViewModel() {
 
     private val _events = Channel<Event>(Channel.RENDEZVOUS)
     val events: SendChannel<Event> get() = _events
 
-    private val _rates = MutableLiveData<Rates>()
-    val rates: LiveData<Rates> get() = _rates
+    private val _currencies = MutableLiveData<Currencies>()
+    val currencies: LiveData<Currencies> get() = _currencies
 
-    private var base = Rate(currency = "EUR", rate = 100.0)
+    private val _message = MutableLiveData<String>()
+    val message: LiveData<String> get() = _message
+
+    private var base = Currency(currency = "EUR", rate = 1f)
 
     init {
         viewModelScope.launch {
-            fun updateRatesJob() = launch {
+            var updateListJob = launch {
                 while (true) {
-                    updateRates(scrollToTop = false)
+                    updateList()
                     delay(UPDATE_DELAY)
                 }
             }
-            var updateRatesJob: Job = updateRatesJob()
             var activeQuery = ""
-            var activeQueryJob: Job? = null
 
             _events.consumeEach { event ->
                 when (event) {
                     is Event.QueryChanged -> {
                         val query = event.query
-                        if (base == event.rate && query != activeQuery) {
+                        if (query != activeQuery) {
                             activeQuery = query
-                            activeQueryJob?.cancel()
-                            updateRatesJob.cancel()
+                            updateListJob.cancel()
 
                             if (query.isNotEmpty()) {
-                                activeQueryJob = launch {
+                                updateListJob = launch {
                                     delay(QUERY_DELAY)
-                                    // base = base.copy(rate = query.toDouble())
-                                    updateRatesJob = updateRatesJob()
+
+                                    while (true) {
+                                        onQueryChanged(query)
+                                        delay(UPDATE_DELAY)
+                                    }
                                 }
                             }
                         }
                     }
                     is Event.ItemClicked -> {
-                        if (base != event.rate) {
-                            base = event.rate
-                            updateRates(scrollToTop = true)
-                        }
+                        if (base == event.currency) return@consumeEach
+                        // updateListJob.cancel()
+                        onItemClicked(event.currency)
                     }
                 }
             }
         }
     }
 
-    private suspend fun updateRates(scrollToTop: Boolean) {
-        val rates = rateRepository.rates(base)
-        _rates.value = Rates(rates, scrollToTop)
+    private suspend fun updateList() {
+        val currencies = currencyRepository.currencies(base)
+        if (currencies.isEmpty()) {
+            _message.value = "Failed to fetch rates"
+            return
+        }
+        _currencies.value = Currencies(currencies, false)
     }
 
-    data class Rates(
-        val rates: List<Rate>,
+    private suspend fun onItemClicked(currency: Currency) {
+        base = currency.copy(rate = 1f)
+        val currencies = currencyRepository.currencies(base)
+        if (currencies.isEmpty()) {
+            _message.value = "Failed to fetch rates"
+            return
+        }
+        _currencies.value = Currencies(currencies, true)
+    }
+
+    private suspend fun onQueryChanged(query: String) {
+        val rate = query.toFloatOrNull() ?: return
+
+        val currencies = currencyRepository.currencies(base, rate)
+        if (currencies.isEmpty()) {
+            _message.value = "Failed to fetch rates"
+            return
+        }
+        _currencies.value = Currencies(currencies, false)
+    }
+
+    data class Currencies(
+        val currencies: List<Currency>,
         val scrollToTop: Boolean
     )
 }

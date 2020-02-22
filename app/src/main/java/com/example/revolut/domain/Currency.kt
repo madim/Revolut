@@ -1,6 +1,6 @@
 package com.example.revolut.domain
 
-data class Rate(
+data class Currency(
     val currency: String,
-    val rate: Double
+    var rate: Float
 )

@@ -6,5 +6,5 @@ import retrofit2.http.Query
 interface CurrencyApi {
 
     @GET("api/android/latest")
-    suspend fun currencyList(@Query("base") base: String): CurrencyResponse
+    suspend fun currencyList(@Query("base") base: String = "EUR"): CurrencyResponse
 }

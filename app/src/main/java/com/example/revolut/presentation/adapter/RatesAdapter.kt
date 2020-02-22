@@ -5,13 +5,13 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import com.example.revolut.R
-import com.example.revolut.domain.Rate
+import com.example.revolut.domain.Currency
 import com.example.revolut.presentation.Event
 import kotlinx.coroutines.channels.SendChannel
 
 internal class RatesAdapter(
     private val events: SendChannel<Event>
-) : ListAdapter<Rate, RateViewHolder>(
+) : ListAdapter<Currency, RateViewHolder>(
     RateItemCallback
 ) {
 
@@ -25,16 +25,16 @@ internal class RatesAdapter(
         holder.bind(getItem(position))
     }
 
-    private object RateItemCallback : DiffUtil.ItemCallback<Rate>() {
-        override fun areItemsTheSame(oldItem: Rate, newItem: Rate): Boolean {
+    private object RateItemCallback : DiffUtil.ItemCallback<Currency>() {
+        override fun areItemsTheSame(oldItem: Currency, newItem: Currency): Boolean {
             return oldItem.currency == newItem.currency
         }
 
-        override fun areContentsTheSame(oldItem: Rate, newItem: Rate): Boolean {
+        override fun areContentsTheSame(oldItem: Currency, newItem: Currency): Boolean {
             return oldItem == newItem
         }
 
-        override fun getChangePayload(oldItem: Rate, newItem: Rate): Any? {
+        override fun getChangePayload(oldItem: Currency, newItem: Currency): Any? {
             if (oldItem == newItem) {
                 return null
             }

@@ -1,7 +1,7 @@
 package com.example.revolut
 
 import com.example.revolut.data.CurrencyApi
-import com.example.revolut.domain.RateRepository
+import com.example.revolut.domain.CurrencyRepository
 import com.example.revolut.presentation.RatesViewModel
 import com.squareup.moshi.Moshi
 import org.koin.androidx.viewmodel.dsl.viewModel
@@ -21,7 +21,7 @@ val appModule = module {
         retrofit.create(CurrencyApi::class.java) as CurrencyApi
     }
 
-    factory { RateRepository(currencyApi = get()) }
+    factory { CurrencyRepository(currencyApi = get()) }
 
-    viewModel { RatesViewModel(rateRepository = get()) }
+    viewModel { RatesViewModel(currencyRepository = get()) }
 }
