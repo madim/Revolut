@@ -2,7 +2,7 @@ package com.example.revolut
 
 import com.example.revolut.data.CurrencyApi
 import com.example.revolut.domain.CurrencyRepository
-import com.example.revolut.presentation.RatesViewModel
+import com.example.revolut.presentation.CurrenciesViewModel
 import com.squareup.moshi.Moshi
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
@@ -23,5 +23,5 @@ val appModule = module {
 
     factory { CurrencyRepository(currencyApi = get()) }
 
-    viewModel { RatesViewModel(currencyRepository = get()) }
+    viewModel { CurrenciesViewModel(currencyRepository = get()) }
 }

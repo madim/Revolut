@@ -12,7 +12,7 @@ import kotlinx.coroutines.channels.SendChannel
 
 private const val RATE_FORMAT = "%.2f"
 
-internal class RateViewHolder(
+internal class CurrencyViewHolder(
     private val root: View,
     private val events: SendChannel<ListEvent>
 ) : RecyclerView.ViewHolder(root), View.OnClickListener {

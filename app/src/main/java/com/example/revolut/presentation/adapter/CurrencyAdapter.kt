@@ -9,28 +9,28 @@ import com.example.revolut.domain.Currency
 import com.example.revolut.presentation.ListEvent
 import kotlinx.coroutines.channels.SendChannel
 
-internal class RatesAdapter(
+internal class CurrencyAdapter(
     private val events: SendChannel<ListEvent>
-) : ListAdapter<Currency, RateViewHolder>(
-    RateItemCallback
+) : ListAdapter<Currency, CurrencyViewHolder>(
+    CurrencyItemCallback
 ) {
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RateViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CurrencyViewHolder {
         val inflater = LayoutInflater.from(parent.context)
-        val view = inflater.inflate(R.layout.item_rate, parent, false)
-        return RateViewHolder(view, events)
+        val view = inflater.inflate(R.layout.item_currency, parent, false)
+        return CurrencyViewHolder(view, events)
     }
 
-    override fun onBindViewHolder(holder: RateViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: CurrencyViewHolder, position: Int) {
         holder.bind(getItem(position))
     }
 
-    override fun onViewRecycled(holder: RateViewHolder) {
+    override fun onViewRecycled(holder: CurrencyViewHolder) {
         super.onViewRecycled(holder)
         holder.recycle()
     }
 
-    private object RateItemCallback : DiffUtil.ItemCallback<Currency>() {
+    private object CurrencyItemCallback : DiffUtil.ItemCallback<Currency>() {
         override fun areItemsTheSame(oldItem: Currency, newItem: Currency): Boolean {
             return oldItem.currency == newItem.currency
         }

@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
 
 private const val UPDATE_DELAY = 1000L
 
-internal class RatesViewModel(
+internal class CurrenciesViewModel(
     private val currencyRepository: CurrencyRepository
 ) : ViewModel() {
 
