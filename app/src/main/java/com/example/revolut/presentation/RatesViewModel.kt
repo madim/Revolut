@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.revolut.domain.Currency
 import com.example.revolut.domain.CurrencyRepository
+import com.example.revolut.presentation.util.Event
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.SendChannel
@@ -19,8 +20,8 @@ internal class RatesViewModel(
     private val currencyRepository: CurrencyRepository
 ) : ViewModel() {
 
-    private val _events = Channel<Event>(Channel.RENDEZVOUS)
-    val events: SendChannel<Event> get() = _events
+    private val _listEvents = Channel<ListEvent>(Channel.RENDEZVOUS)
+    val listEvents: SendChannel<ListEvent> get() = _listEvents
 
     private val _networkEvents = Channel<NetworkEvent>(Channel.RENDEZVOUS)
     val networkEvents: SendChannel<NetworkEvent> get() = _networkEvents
@@ -28,8 +29,8 @@ internal class RatesViewModel(
     private val _currencies = MutableLiveData<Currencies>()
     val currencies: LiveData<Currencies> get() = _currencies
 
-    private val _message = MutableLiveData<String>()
-    val message: LiveData<String> get() = _message
+    private val _message = MutableLiveData<Event<String>>()
+    val message: LiveData<Event<String>> get() = _message
 
     private var base = Currency(currency = "EUR", rate = 1f)
 
@@ -41,6 +42,7 @@ internal class RatesViewModel(
                 _networkEvents.consumeEach { event ->
                     when (event) {
                         is NetworkEvent.OnAvailable -> {
+                            updateListJob?.cancel()
                             updateListJob = launch {
                                 while (true) {
                                     updateList()
@@ -49,6 +51,7 @@ internal class RatesViewModel(
                             }
                         }
                         is NetworkEvent.OnLost -> {
+                            _message.value = Event("Network is unavailable")
                             updateListJob?.cancel()
                         }
                     }
@@ -58,9 +61,9 @@ internal class RatesViewModel(
             launch {
                 var activeQuery = ""
 
-                _events.consumeEach { event ->
+                _listEvents.consumeEach { event ->
                     when (event) {
-                        is Event.QueryChanged -> {
+                        is ListEvent.QueryChanged -> {
                             val query = event.query
                             if (query != activeQuery) {
                                 activeQuery = query
@@ -76,12 +79,11 @@ internal class RatesViewModel(
                                 }
                             }
                         }
-                        is Event.ItemClicked -> {
+                        is ListEvent.ItemClicked -> {
                             if (base == event.currency) return@consumeEach
-                            // updateListJob.cancel()
                             onItemClicked(event.currency)
                         }
-                        is Event.BaseRecycled -> {
+                        is ListEvent.BaseRecycled -> {
                             val query = event.query
                             val rate = query.toFloatOrNull() ?: return@consumeEach
                             base = base.copy(rate = rate)
@@ -95,7 +97,7 @@ internal class RatesViewModel(
     private suspend fun updateList() {
         val currencies = currencyRepository.currencies(base)
         if (currencies.isEmpty()) {
-            _message.value = "Failed to fetch rates"
+            _message.value = Event("Failed to fetch rates")
             return
         }
         _currencies.value = Currencies(currencies, false)
@@ -105,7 +107,7 @@ internal class RatesViewModel(
         base = currency.copy(rate = 1f)
         val currencies = currencyRepository.currencies(base)
         if (currencies.isEmpty()) {
-            _message.value = "Failed to fetch rates"
+            _message.value = Event("Failed to fetch rates")
             return
         }
         _currencies.value = Currencies(currencies, true)
@@ -116,7 +118,7 @@ internal class RatesViewModel(
 
         val currencies = currencyRepository.currencies(base, rate)
         if (currencies.isEmpty()) {
-            _message.value = "Failed to fetch rates"
+            _message.value = Event("Failed to fetch rates")
             return
         }
         _currencies.value = Currencies(currencies, false)

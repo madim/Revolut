@@ -6,11 +6,11 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import com.example.revolut.R
 import com.example.revolut.domain.Currency
-import com.example.revolut.presentation.Event
+import com.example.revolut.presentation.ListEvent
 import kotlinx.coroutines.channels.SendChannel
 
 internal class RatesAdapter(
-    private val events: SendChannel<Event>
+    private val events: SendChannel<ListEvent>
 ) : ListAdapter<Currency, RateViewHolder>(
     RateItemCallback
 ) {

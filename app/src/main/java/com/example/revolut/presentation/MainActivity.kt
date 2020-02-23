@@ -14,6 +14,7 @@ import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.RecyclerView
 import com.example.revolut.R
 import com.example.revolut.presentation.adapter.RatesAdapter
+import com.example.revolut.presentation.util.EventObserver
 import com.example.revolut.presentation.util.onScroll
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -38,7 +39,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        val ratesAdapter = RatesAdapter(ratesViewModel.events)
+        val ratesAdapter = RatesAdapter(ratesViewModel.listEvents)
         val rateList: RecyclerView = findViewById(R.id.rate_list)
         rateList.adapter = ratesAdapter
 
@@ -48,7 +49,7 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        ratesViewModel.message.observe(this, Observer {
+        ratesViewModel.message.observe(this, EventObserver {
             Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
         })
 
