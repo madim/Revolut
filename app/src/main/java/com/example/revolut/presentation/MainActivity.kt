@@ -1,5 +1,8 @@
 package com.example.revolut.presentation
 
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkRequest
 import android.os.Bundle
 import android.view.ViewConfiguration
 import android.view.inputmethod.InputMethodManager
@@ -16,7 +19,21 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class MainActivity : AppCompatActivity() {
 
+    private val networkCallback = object : ConnectivityManager.NetworkCallback() {
+        override fun onAvailable(network: Network) {
+            super.onAvailable(network)
+            ratesViewModel.networkEvents.offer(NetworkEvent.OnAvailable)
+        }
+
+        override fun onLost(network: Network) {
+            super.onLost(network)
+            ratesViewModel.networkEvents.offer(NetworkEvent.OnLost)
+        }
+    }
+
     private val ratesViewModel: RatesViewModel by viewModel()
+
+    private var connectivityManager: ConnectivityManager? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,5 +68,14 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+
+        val networkRequest = NetworkRequest.Builder().build()
+        connectivityManager = getSystemService()
+        connectivityManager?.registerNetworkCallback(networkRequest, networkCallback)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        connectivityManager?.unregisterNetworkCallback(networkCallback)
     }
 }

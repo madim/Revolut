@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.revolut.domain.Currency
 import com.example.revolut.domain.CurrencyRepository
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.consumeEach
@@ -21,6 +22,9 @@ internal class RatesViewModel(
     private val _events = Channel<Event>(Channel.RENDEZVOUS)
     val events: SendChannel<Event> get() = _events
 
+    private val _networkEvents = Channel<NetworkEvent>(Channel.RENDEZVOUS)
+    val networkEvents: SendChannel<NetworkEvent> get() = _networkEvents
+
     private val _currencies = MutableLiveData<Currencies>()
     val currencies: LiveData<Currencies> get() = _currencies
 
@@ -31,41 +35,57 @@ internal class RatesViewModel(
 
     init {
         viewModelScope.launch {
-            var updateListJob = launch {
-                while (true) {
-                    updateList()
-                    delay(UPDATE_DELAY)
+            var updateListJob: Job? = null
+
+            launch {
+                _networkEvents.consumeEach { event ->
+                    when (event) {
+                        is NetworkEvent.OnAvailable -> {
+                            updateListJob = launch {
+                                while (true) {
+                                    updateList()
+                                    delay(UPDATE_DELAY)
+                                }
+                            }
+                        }
+                        is NetworkEvent.OnLost -> {
+                            updateListJob?.cancel()
+                        }
+                    }
                 }
             }
-            var activeQuery = ""
 
-            _events.consumeEach { event ->
-                when (event) {
-                    is Event.QueryChanged -> {
-                        val query = event.query
-                        if (query != activeQuery) {
-                            activeQuery = query
-                            updateListJob.cancel()
+            launch {
+                var activeQuery = ""
 
-                            if (query.isNotEmpty()) {
-                                updateListJob = launch {
-                                    while (true) {
-                                        onQueryChanged(query)
-                                        delay(UPDATE_DELAY)
+                _events.consumeEach { event ->
+                    when (event) {
+                        is Event.QueryChanged -> {
+                            val query = event.query
+                            if (query != activeQuery) {
+                                activeQuery = query
+                                updateListJob?.cancel()
+
+                                if (query.isNotEmpty()) {
+                                    updateListJob = launch {
+                                        while (true) {
+                                            onQueryChanged(query)
+                                            delay(UPDATE_DELAY)
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
-                    is Event.ItemClicked -> {
-                        if (base == event.currency) return@consumeEach
-                        // updateListJob.cancel()
-                        onItemClicked(event.currency)
-                    }
-                    is Event.BaseRecycled -> {
-                        val query = event.query
-                        val rate = query.toFloatOrNull() ?: return@consumeEach
-                        base = base.copy(rate = rate)
+                        is Event.ItemClicked -> {
+                            if (base == event.currency) return@consumeEach
+                            // updateListJob.cancel()
+                            onItemClicked(event.currency)
+                        }
+                        is Event.BaseRecycled -> {
+                            val query = event.query
+                            val rate = query.toFloatOrNull() ?: return@consumeEach
+                            base = base.copy(rate = rate)
+                        }
                     }
                 }
             }
